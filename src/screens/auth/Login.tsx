@@ -4,6 +4,7 @@ import { globalStyles as s } from '../../styles/globalStyles';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import * as Keychain from 'react-native-keychain';
 
 type AuthNavProp = NativeStackNavigationProp<AuthStackParamList, 'Login'>;
 
@@ -12,6 +13,30 @@ export const Login = () => {
   const handleSignUp = () => {
     navigation.navigate('Register');
   };
+
+  const setCredentials = async (username: string, password: string) =>
+    await Keychain.setGenericPassword(username, password, {
+      service: 'service_key',
+      securityLevel: Keychain.SECURITY_LEVEL.SECURE_SOFTWARE,
+      accessControl: Keychain.ACCESS_CONTROL.BIOMETRY_ANY_OR_DEVICE_PASSCODE,
+    });
+
+  setCredentials('username', 'password').then(res =>
+    console.log('Credentials set, ', res),
+  );
+
+  const getCredentials = async () => {
+    const credentials = await Keychain.getGenericPassword({
+      service: 'service_key',
+      accessControl: Keychain.ACCESS_CONTROL.BIOMETRY_ANY_OR_DEVICE_PASSCODE,
+    });
+    return credentials;
+  };
+
+  console.log(
+    'keychain',
+    getCredentials().then(res => console.log(res)),
+  );
 
   return (
     <SafeAreaView style={s.safeArea}>
