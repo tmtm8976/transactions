@@ -16,14 +16,7 @@ import { Dashboard } from './src/screens/dashboard/Dashboard';
 import { DocumentUpload } from './src/screens/kyc/DocumentUpload';
 import { PersonalInfo } from './src/screens/kyc/PersonalInfo';
 import { KycStatus } from './src/screens/kyc/KycStatus';
-
-function HomeScreen() {
-  return (
-    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-      <Text>Home Screen</Text>
-    </View>
-  );
-}
+import { User } from 'lucide-react-native';
 
 const TransactionHistoryStack = createNativeStackNavigator({
   screens: {
@@ -51,12 +44,25 @@ const Tabs = createBottomTabNavigator({
     Transactions: TransactionHistoryStack,
     Account: ProfileStack,
   },
-  screenOptions: {
+  screenOptions: ({ route }) => ({
+    // tabBarIcon: ({ focused, color, size }) => {
+    //   let iconName;
+
+    //   if (route.name === 'Home') {
+    //     iconName = focused
+    //       ? 'ios-information-circle'
+    //       : 'ios-information-circle-outline';
+    //   } else if (route.name === 'Settings') {
+    //     iconName = focused ? 'ios-list' : 'ios-list-outline';
+    //   }
+
+    //   // You can return any component that you like here!
+    //   return <User/>;
+    // },
+    tabBarActiveTintColor: 'tomato',
+    tabBarInactiveTintColor: 'gray',
     headerShown: false,
-    tabBarStyle: { display: 'flex' },
-    tabBarActiveTintColor: '#000',
-    tabBarInactiveTintColor: '#888',
-  },
+  }),
 });
 
 const authStack = createNativeStackNavigator<AuthStackParamList>({
@@ -79,8 +85,8 @@ const authStack = createNativeStackNavigator<AuthStackParamList>({
 
 const RootStack = createNativeStackNavigator({
   screens: {
-    Login: authStack,
-    // Home: Tabs,
+    // Login: authStack,
+    Home: Tabs,
   },
   
   screenOptions: {
@@ -92,7 +98,7 @@ const RootStack = createNativeStackNavigator({
     cardOverlayEnabled: true,
     presentation: 'card',
   },
-  initialRouteName: 'Login',
+  initialRouteName: 'Home',
 });
 
 const Navigation = createStaticNavigation(RootStack);
