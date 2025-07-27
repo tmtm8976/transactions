@@ -48,7 +48,7 @@ export const globalStyles = StyleSheet.create({
     color: '#FFFFFF',
   },
   card: {
-    backgroundColor: '#1A1A1A',
+    backgroundColor: '#2A2A2A',
     borderRadius: 10,
     padding: 15,
     marginBottom: 15,
@@ -119,4 +119,10 @@ export const globalStyles = StyleSheet.create({
   link: {
     color: '#00D4AA',
   },
+  between: {
+    justifyContent: 'space-between',
+  },
+  success: {
+    color: '#00C851',
+  }
 });

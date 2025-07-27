@@ -16,7 +16,7 @@ import { Dashboard } from './src/screens/dashboard/Dashboard';
 import { DocumentUpload } from './src/screens/kyc/DocumentUpload';
 import { PersonalInfo } from './src/screens/kyc/PersonalInfo';
 import { KycStatus } from './src/screens/kyc/KycStatus';
-import { User } from 'lucide-react-native';
+import Icon from '@react-native-vector-icons/fontawesome6';
 
 const TransactionHistoryStack = createNativeStackNavigator({
   screens: {
@@ -35,6 +35,9 @@ const ProfileStack = createNativeStackNavigator({
     PersonalInfo: PersonalInfo,
     KycStatus: KycStatus,
   },
+  screenOptions: {
+    headerShown: false,
+  },
 });
 
 const Tabs = createBottomTabNavigator({
@@ -45,23 +48,31 @@ const Tabs = createBottomTabNavigator({
     Account: ProfileStack,
   },
   screenOptions: ({ route }) => ({
-    // tabBarIcon: ({ focused, color, size }) => {
-    //   let iconName;
+    tabBarIcon: ({ focused, color, size }) => {
+      let iconName;
 
-    //   if (route.name === 'Home') {
-    //     iconName = focused
-    //       ? 'ios-information-circle'
-    //       : 'ios-information-circle-outline';
-    //   } else if (route.name === 'Settings') {
-    //     iconName = focused ? 'ios-list' : 'ios-list-outline';
-    //   }
+      if (route.name === 'Home') {
+        iconName = focused
+          ? 'ios-information-circle'
+          : 'ios-information-circle-outline';
+      } else if (route.name === 'Settings') {
+        iconName = focused ? 'ios-list' : 'ios-list-outline';
+      }
 
-    //   // You can return any component that you like here!
-    //   return <User/>;
-    // },
-    tabBarActiveTintColor: 'tomato',
+      // You can return any component that you like here!
+      return <Icon name="user" />;
+    },
+    tabBarActiveTintColor: '#00D4AA',
     tabBarInactiveTintColor: 'gray',
     headerShown: false,
+    tabBarStyle: {
+      backgroundColor: '#2A2A2A',
+      height: 80,
+      borderWidth: 0,
+      borderTopWidth: 0,
+      alignItems: "center",
+      justifyContent:  "center"
+    },
   }),
 });
 
@@ -88,7 +99,7 @@ const RootStack = createNativeStackNavigator({
     // Login: authStack,
     Home: Tabs,
   },
-  
+
   screenOptions: {
     headerShown: false,
     animation: 'slide_from_right',
