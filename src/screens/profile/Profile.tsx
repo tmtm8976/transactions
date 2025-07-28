@@ -8,10 +8,10 @@ import { colors } from '../../styles/colors';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
-type AuthNavProp = NativeStackNavigationProp<ProfileStackParamList, 'Profile'>;
+type NavProp = NativeStackNavigationProp<ProfileStackParamList, 'Profile'>;
 
 export const Profile = () => {
-  const navigation = useNavigation<AuthNavProp>();
+  const navigation = useNavigation<NavProp>();
 
   const handleBtnNavigate = (screen: ProfileStackScreens) => {
     navigation.navigate(screen);

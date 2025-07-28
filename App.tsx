@@ -96,7 +96,7 @@ const authStack = createNativeStackNavigator<AuthStackParamList>({
 
 const RootStack = createNativeStackNavigator({
   screens: {
-    // Login: authStack,
+    Login: authStack,
     Home: Tabs,
   },
 
@@ -109,7 +109,7 @@ const RootStack = createNativeStackNavigator({
     cardOverlayEnabled: true,
     presentation: 'card',
   },
-  initialRouteName: 'Home',
+  initialRouteName: 'Login',
 });
 
 const Navigation = createStaticNavigation(RootStack);

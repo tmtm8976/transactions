@@ -122,7 +122,22 @@ export const globalStyles = StyleSheet.create({
   between: {
     justifyContent: 'space-between',
   },
+  justifyEnd: {
+    justifyContent: 'flex-end',
+  },
   success: {
     color: '#00C851',
-  }
+  },
+  alignCenter: {
+    alignItems: 'center',
+  },
+  justifyCenter: {
+    justifyContent: 'center',
+  },
+  flex1: {
+    flex: 1,
+  },
+  absolute: {
+    position: 'absolute',
+  },
 });
