@@ -106,6 +106,10 @@ export const globalStyles = StyleSheet.create({
     fontSize: 14,
     color: '#B3B3B3',
   },
+  smallerText: {
+    fontSize: 12,
+    color: '#B3B3B3',
+  },
   flexRow: {
     flexDirection: 'row',
     alignItems: 'center',

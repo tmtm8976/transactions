@@ -4,6 +4,12 @@ type AuthStackParamList = {
   BiometricSetup: undefined;
 };
 
+type HomeStackParamList = {
+  Dashboard: undefined;
+  SendMoney: undefined;
+  History: undefined;
+};
+
 type ProfileStackParamList = {
   Profile: undefined;
   Settings: undefined;
@@ -18,3 +24,10 @@ type ProfileStackScreens =
   | 'DocumentUpload'
   | 'PersonalInfo'
   | 'KycStatus';
+
+
+type HomeStackScreens =
+| 'Dashboard'
+| 'SendMoney'
+| 'History'
+
