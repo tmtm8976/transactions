@@ -18,16 +18,11 @@ type ProfileStackParamList = {
   KycStatus: undefined;
 };
 
-type ProfileStackScreens =
-  | 'Profile'
-  | 'Settings'
-  | 'DocumentUpload'
-  | 'PersonalInfo'
-  | 'KycStatus';
+type HomeStackScreens = 'Dashboard' | 'SendMoney' | 'History';
 
-
-type HomeStackScreens =
-| 'Dashboard'
-| 'SendMoney'
-| 'History'
-
+type Transaction = {
+  id: number;
+  recipient: string;
+  amount: number;
+  status: string;
+};
