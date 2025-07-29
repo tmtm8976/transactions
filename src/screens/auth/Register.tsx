@@ -22,11 +22,20 @@ import {
 } from '../../utils/permissions';
 import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
 import FontAwesome6 from '@react-native-vector-icons/fontawesome6';
+import config from '../../../config';
+import * as Keychain from 'react-native-keychain';
+import { useAuth } from '../../context/AuthContext';
 
 export const Register = () => {
   const navigation = useNavigation<NativeStackNavigationProp<any>>();
   const [step, setStep] = useState(1);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [formData, setFormData] = useState({
+    username: '',
+    password: '',
+    confirmPassword: '',
+  });
+  const { login } = useAuth();
   const handleLogIn = () => {
     navigation.goBack();
   };
@@ -138,9 +147,65 @@ export const Register = () => {
     }
   };
 
-  const handleRegister = () => {
-    navigation.navigate('Home');
+  const handleInputChange = (fieldName: string, value: string) => {
+    setFormData(prevFormData => ({
+      ...prevFormData,
+      [fieldName]: value,
+    }));
   };
+
+  const handleRegister = async () => {
+
+    console.log('formData', formData);
+    
+  try {
+    const formDataToSend = new FormData();
+
+    formDataToSend.append('username', formData.username);
+    formDataToSend.append('password', formData.password);
+    formDataToSend.append('confirmPassword', formData.confirmPassword);
+
+    if (selectedImage) {
+      const fileName = selectedImage.split('/').pop();
+      const fileType = fileName?.split('.').pop();
+
+      formDataToSend.append('IDImage', {
+        uri: selectedImage,
+        name: fileName || `photo.${fileType || 'jpg'}`,
+        type: `image/${fileType || 'jpeg'}`,
+      });
+    }
+
+    const response = await fetch(`${config.API_URL}/register`, {
+      method: 'POST',
+      headers: {
+        // DO NOT manually set Content-Type for FormData
+        // The browser or fetch will set it with the correct boundaries
+      },
+      body: formDataToSend,
+    });
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      throw new Error(result.message || 'Registration failed');
+    }
+
+    console.log('Server response:', result);
+
+    // Optionally auto-login:
+    await Keychain.setGenericPassword(formData.username, result.token, {
+      service: 'service_key',
+      accessControl: Keychain.ACCESS_CONTROL.BIOMETRY_ANY_OR_DEVICE_PASSCODE,
+    });
+
+    login()
+  } catch (error: any) {
+    console.error('Register error:', { error });
+    Alert.alert('Error', error.message);
+  }
+};
+
 
   return (
     <SafeAreaView style={s.safeArea}>
@@ -169,11 +234,13 @@ export const Register = () => {
         {/* welcome msg based on time */}
         {step === 1 && (
           <View style={s.my20}>
-            <Text style={s.lable}>Email</Text>
+            <Text style={s.lable}>username</Text>
             <TextInput
               style={s.input}
               placeholderTextColor={'#808080'}
-              placeholder="Email"
+              placeholder="username"
+              onChangeText={text => handleInputChange('username', text)}
+              value={formData.username}
             />
           </View>
         )}
@@ -185,6 +252,8 @@ export const Register = () => {
               style={s.input}
               placeholderTextColor={'#808080'}
               secureTextEntry
+              onChangeText={text => handleInputChange('password', text)}
+              value={formData.password}
             />
             <Text style={s.lable}>Confirm Password</Text>
             <TextInput
@@ -192,6 +261,8 @@ export const Register = () => {
               style={s.input}
               placeholderTextColor={'#808080'}
               secureTextEntry
+              onChangeText={text => handleInputChange('confirmPassword', text)}
+              value={formData.confirmPassword}
             />
           </View>
         )}
@@ -214,11 +285,7 @@ export const Register = () => {
                     onPress={() => setSelectedImage(null)}
                     style={styles.closeButton}
                   >
-                    <Lucide
-                      name="x"
-                      size={20}
-                      color={colors.text.tertiary}
-                    />
+                    <Lucide name="x" size={20} color={colors.text.tertiary} />
                   </Pressable>
                   <Image
                     source={{ uri: selectedImage }}

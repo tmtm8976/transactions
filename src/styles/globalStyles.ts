@@ -1,4 +1,5 @@
 import { StyleSheet } from 'react-native';
+import { colors } from './colors';
 
 export const globalStyles = StyleSheet.create({
   safeArea: {
@@ -144,4 +145,12 @@ export const globalStyles = StyleSheet.create({
   absolute: {
     position: 'absolute',
   },
+  error: {
+    color: colors.status.error,
+    fontSize: 11,
+    marginBottom: 10,
+    textTransform: 'capitalize',
+    position: 'absolute',
+    bottom: -15,
+  }
 });

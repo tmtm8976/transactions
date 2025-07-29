@@ -1,7 +1,6 @@
 type AuthStackParamList = {
   Login: undefined;
   Register: undefined;
-  BiometricSetup: undefined;
 };
 
 type HomeStackParamList = {
@@ -19,6 +18,19 @@ type ProfileStackParamList = {
 };
 
 type HomeStackScreens = 'Dashboard' | 'SendMoney' | 'History';
+type AuthStackNavigationScreens = {
+  Login: undefined;
+  Register: undefined;
+  Home: undefined;
+};
+
+type HomeStackNavigationScreens = {
+  Auth: undefined;
+  Dashboard: undefined;
+  SendMoney: undefined;
+  History: undefined;
+};
+
 
 type Transaction = {
   id: number;
