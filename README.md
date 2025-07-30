@@ -1,18 +1,35 @@
-📋 TODO
-✅ Completed
- Registration and KYC document upload with camera
+# Offline-First Remittance App with Biometric Authentication
 
- Send Money flow (mock Cybrid rate)
+A React Native app for secure money transfers that works offline, supports biometric authentication, and syncs data when online.
 
- Biometric authentication for transaction signing
+## Features
 
- Jailbreak/root detection
+### Core Functionality
+- Registration and KYC upload via camera
+- Send Money flow with mock Cybrid rate fetch
+- Transaction history with real-time status (Created, Completed) – pending
 
-⏳ In Progress / Pending
- Real-time transaction status display ("Created", "Completed")
+### Offline Support
+- Queue transactions locally (SQLite/WatermelonDB) – pending
+- Sync when connectivity resumes – pending
 
- Local queueing of offline transactions (SQLite/WatermelonDB)
+### Security
+- Biometric auth via react-native-keychain
+- Jailbreak/root detection
 
- Background/foreground syncing on reconnection
+### Notifications
+- Firebase push alerts for transaction updates – pending
 
- Firebase push notifications for transaction updates
+## TODO
+
+### Completed
+- [x] Registration & KYC upload
+- [x] Send Money flow (mock rate)
+- [x] Biometric authentication
+- [x] Jailbreak detection
+
+### Pending
+- [ ] Transaction history with status updates
+- [ ] Offline queueing (SQLite/WatermelonDB)
+- [ ] Sync on reconnect
+- [ ] Firebase push notifications
