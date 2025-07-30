@@ -7,19 +7,52 @@ import Lucide from '@react-native-vector-icons/lucide';
 import { colors } from '../../styles/colors';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import * as Keychain from 'react-native-keychain';
+import { useAuth } from '../../context/AuthContext';
 
-type NavProp = NativeStackNavigationProp<HomeStackParamList, 'Dashboard'>;
+type NavProp = NativeStackNavigationProp<
+  HomeStackNavigationScreens,
+  'Dashboard'
+>;
 
 export const Dashboard = () => {
   const navigation = useNavigation<NavProp>();
+  const { logout } = useAuth();
 
   const handleBtnNavigate = (screen: HomeStackScreens) => {
     navigation.navigate(screen);
   };
 
+  const handleLogout = async () => {
+    const success = await Keychain.resetGenericPassword({
+      service: 'service_key',
+    });
+    console.log('Password reset successful:', success);
+    logout();
+  };
+
   return (
     <SafeAreaView style={s.safeArea}>
       <View style={s.container}>
+        <Pressable
+          onPress={handleLogout}
+          style={[
+            s.absolute,
+            {
+              top: 10,
+              right: 10,
+              padding: 10,
+            },
+          ]}
+        >
+          {/* <Text style={[s.text, { color: 'white' }]}>Logout</Text> */}
+          <FontAwesome6
+            name="arrow-right-from-bracket"
+            size={20}
+            color={colors.status.error}
+            iconStyle="solid"
+          />
+        </Pressable>
         <View style={[s.flexRow, s.between, s.my20]}>
           <View>
             <Text style={s.header}>John Doe</Text>
