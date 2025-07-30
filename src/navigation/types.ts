@@ -31,6 +31,14 @@ type HomeStackNavigationScreens = {
   History: undefined;
 };
 
+type User = {
+  id?: number;
+  name?: string;
+  username?: string;
+  balance?: number | null | undefined;
+  transactions?: Transaction[] | null | undefined;
+  token: string;
+};
 
 type Transaction = {
   id: number;

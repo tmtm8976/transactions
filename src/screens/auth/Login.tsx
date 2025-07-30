@@ -94,7 +94,12 @@ export const Login = () => {
         },
       });
 
-      login();
+      login({
+        id: result?.user.id ?? '',
+        name: result?.user.name ?? '',
+        username: result?.user.username ?? '',
+        token: result.token ?? '',
+      });
     } catch (error: any) {
       console.error('Login error:', error.message, { error });
       Alert.alert('Error', error.message);

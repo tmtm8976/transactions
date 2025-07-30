@@ -1,21 +1,53 @@
 import React, { useEffect, useState } from 'react';
-import { FlatList, Text, View, StyleSheet } from 'react-native';
+import { FlatList, Text, View, StyleSheet, Alert } from 'react-native';
 import { getDB } from '../../db/database';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { globalStyles as s } from '../../styles/globalStyles';
+import { useAuth } from '../../context/AuthContext';
+import config from '../../../config';
+import { colors } from '../../styles/colors';
+
+type StatusKey = keyof typeof colors.status;
 
 export const TransactionHistory = () => {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const { authUser, logout } = useAuth();
+  const [loading, setLoading] = useState(false);
 
   const loadTransactions = async () => {
-    const db = await getDB();
-    const results = await db.executeSql('SELECT * FROM transactions');
-    const rows = results[0].rows;
-    const items: Transaction[] = [];
-    for (let i = 0; i < rows.length; i++) {
-      items.push(rows.item(i));
+    try {
+      if (!authUser?.token) {
+        Alert.alert('Please login first');
+        logout();
+        return;
+      }
+
+      setLoading(true);
+
+      const token = authUser.token;
+
+      const response = await fetch(`${config.API_URL}/transactions`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token ?? ''}`,
+        },
+      });
+
+      const result = await response.json();
+      setLoading(false);
+
+      console.log('result', result);
+
+      if (!response.ok) {
+        throw new Error(result.message || 'Login failed');
+      }
+      setTransactions(result?.data);
+    } catch (error: any) {
+      console.error('Login error:', error.message, { error });
+      Alert.alert('Error', error.message);
+      setLoading(false);
     }
-    setTransactions(items);
   };
 
   useEffect(() => {
@@ -28,14 +60,30 @@ export const TransactionHistory = () => {
         <Text style={s.header}>Transaction History</Text>
         <FlatList
           data={transactions}
-          keyExtractor={item => item.id.toString()}
-          renderItem={({ item }) => (
-            <View style={styles.item}>
-              <Text>{item.recipient}</Text>
-              <Text>{item.amount.toFixed(2)}</Text>
-              <Text>Status: {item.status}</Text>
-            </View>
-          )}
+          keyExtractor={(_, i) => i.toString()}
+          refreshing={loading}
+          onRefresh={loadTransactions}
+          renderItem={({ item }) => {
+            const status = item.status.toLowerCase() as StatusKey;
+            return (
+              <View style={[s.card, s.flexRow, s.between]}>
+                <Text style={s.lable}>{item.recipient}</Text>
+                <Text style={s.text}>{item.amount.toFixed(2)}</Text>
+                <Text
+                  style={[
+                    s.smallText,
+                    {
+                      color:
+                        colors.status?.[status] ??
+                        colors.text.primary,
+                    },
+                  ]}
+                >
+                  {item.status}
+                </Text>
+              </View>
+            );
+          }}
         />
       </View>
     </SafeAreaView>

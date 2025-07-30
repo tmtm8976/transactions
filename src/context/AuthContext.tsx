@@ -2,26 +2,32 @@ import React, { createContext, useContext, useState } from 'react';
 
 type AuthContextType = {
   authenticated: boolean;
-  login: () => void;
+  login: (user: User) => void;
   logout: () => void;
+  authUser: User | null;
 };
 
 const AuthContext = createContext<AuthContextType>({
   authenticated: false,
   login: () => {},
   logout: () => {},
+  authUser: null,
 });
 
 export const useAuth = () => useContext(AuthContext);
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [authenticated, setAuthenticated] = useState(false);
+  const  [authUser, setAuthUser] = useState<User | null>(null);
 
-  const login = () => setAuthenticated(true);
+  const login = (user: User) => {
+    setAuthUser(user);
+    setAuthenticated(true);
+  }
   const logout = () => setAuthenticated(false);
 
   return (
-    <AuthContext.Provider value={{ authenticated, login, logout }}>
+    <AuthContext.Provider value={{ authenticated, login, logout, authUser }}>
       {children}
     </AuthContext.Provider>
   );

@@ -56,7 +56,10 @@ const NavigatorContainer = () => {
         console.log('creds', creds);
 
         if (creds && creds.password) {
-          login();
+          login({
+            username: creds.username,
+            token: creds.password,
+          });
         }
       } catch (error) {
         console.log('No token found or biometric failed:', error);
