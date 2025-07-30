@@ -1,16 +1,34 @@
 import React, { useState } from 'react';
-import { Alert, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Alert,
+  Platform,
+  Pressable,
+  StyleSheet,
+  Text,
+  TextInput,
+  ToastAndroid,
+  View,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { globalStyles as s } from '../../styles/globalStyles';
 import Lucide from '@react-native-vector-icons/lucide';
 import { colors } from '../../styles/colors';
 import Clipboard from '@react-native-clipboard/clipboard';
+import config from '../../../config';
+import { useAuth } from '../../context/AuthContext';
+import * as Keychain from 'react-native-keychain';
+import { useNavigation } from '@react-navigation/native';
 
 export const SendMoney = () => {
   const [recipient, setRecipient] = useState('');
   const [amount, setAmount] = useState('');
   const [converted, setConverted] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const { logout } = useAuth();
+
+  const navigation = useNavigation();
 
   const handlePaste = async () => {
     const text = await Clipboard.getString();
@@ -28,7 +46,7 @@ export const SendMoney = () => {
     });
   };
 
-  const handleSend = async () => {
+  const convert = async () => {
     if (!amount || isNaN(Number(amount))) {
       Alert.alert('Enter a valid amount');
       return;
@@ -36,6 +54,64 @@ export const SendMoney = () => {
 
     const { rate } = await fetchMockRate();
     setConverted(Number(amount) * rate);
+  };
+
+  const handleAmountChange = (text: string) => {
+    setAmount(text);
+    text && convert();
+  };
+
+  const handleSend = async () => {
+    try {
+      const hasToken = await Keychain.getGenericPassword({
+        service: 'service_key',
+        accessControl: Keychain.ACCESS_CONTROL.BIOMETRY_ANY_OR_DEVICE_PASSCODE,
+      });
+
+      if (!hasToken) {
+        Alert.alert('Please login first');
+        logout();
+        return;
+      }
+
+      if (!recipient || !amount) {
+        Alert.alert('Please enter recipient and amount');
+        return;
+      }
+
+      setSubmitting(true);
+
+      const token = hasToken.password;
+
+      const response = await fetch(`${config.API_URL}/transaction`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token ?? ''}`,
+        },
+        body: JSON.stringify({
+          amount: parseFloat(amount),
+          recipient,
+        }),
+      });
+
+      const result = await response.json();
+      setSubmitting(false);
+
+      if (!response.ok) {
+        throw new Error(result.message || 'Login failed');
+      }
+
+      Platform.OS === 'android' &&
+        ToastAndroid.show('Money sent successfully', ToastAndroid.SHORT);
+      Platform.OS === 'ios' &&
+        Alert.alert('Success', 'Money sent successfully');
+      navigation.goBack();
+    } catch (error: any) {
+      console.error('Login error:', error.message, { error });
+      Alert.alert('Error', error.message);
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -69,20 +145,32 @@ export const SendMoney = () => {
         </View>
 
         {/* Amount */}
-        <Text style={[s.lable, { color: colors.text.primary }]}>Amount (USD)</Text>
+        <Text style={[s.lable, { color: colors.text.primary }]}>
+          Amount (USD)
+        </Text>
         <TextInput
           style={s.input}
           placeholderTextColor="#808080"
           placeholder="Enter amount"
           keyboardType="numeric"
           value={amount}
-          onChangeText={setAmount}
+          onChangeText={handleAmountChange}
         />
 
         {/* Converted */}
-        {converted !== null && (
+        {amount !== null && (
           <Text style={{ marginTop: 10, color: colors.text.primary }}>
-            Recipient will receive: <Text style={{ fontWeight: 'bold' }}>{converted.toFixed(2)}</Text> local currency
+            {loading
+              ? 'Calculating...'
+              : converted !== null && (
+                  <Text style={{ marginTop: 10, color: colors.text.primary }}>
+                    Recipient will receive:{' '}
+                    <Text style={{ fontWeight: 'bold', marginHorizontal: 5 }}>
+                      {converted.toFixed(2)}
+                    </Text>
+                    local currency
+                  </Text>
+                )}{' '}
           </Text>
         )}
 
@@ -93,9 +181,13 @@ export const SendMoney = () => {
             { marginTop: 20, backgroundColor: colors.accent.secondary },
           ]}
         >
-          <Text style={[s.buttonText, { color: colors.text.primary }]}>
-            {loading ? 'Calculating...' : 'Send'}
-          </Text>
+          {submitting ? (
+            <ActivityIndicator />
+          ) : (
+            <Text style={[s.buttonText, { color: colors.text.primary }]}>
+              Send
+            </Text>
+          )}
         </Pressable>
       </View>
     </SafeAreaView>
