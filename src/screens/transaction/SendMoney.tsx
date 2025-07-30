@@ -19,6 +19,9 @@ import config from '../../../config';
 import { useAuth } from '../../context/AuthContext';
 import * as Keychain from 'react-native-keychain';
 import { useNavigation } from '@react-navigation/native';
+import NetInfo from '@react-native-community/netinfo';
+import { addToQueue } from '../../db/queue';
+// import { addToQueue } from '../../db/queue';
 
 export const SendMoney = () => {
   const [recipient, setRecipient] = useState('');
@@ -48,7 +51,7 @@ export const SendMoney = () => {
 
   const convert = async () => {
     if (!amount || isNaN(Number(amount))) {
-      Alert.alert('Enter a valid amount');
+      // Alert.alert('Enter a valid amount');
       return;
     }
 
@@ -62,23 +65,37 @@ export const SendMoney = () => {
   };
 
   const handleSend = async () => {
+    const hasToken = await Keychain.getGenericPassword({
+      service: 'service_key',
+      accessControl: Keychain.ACCESS_CONTROL.BIOMETRY_ANY_OR_DEVICE_PASSCODE,
+    });
+
+    if (!hasToken) {
+      Alert.alert('Please login first');
+      logout();
+      return;
+    }
+
+    if (!recipient || !amount) {
+      Alert.alert('Please enter recipient and amount');
+      return;
+    }
+
+    const amountNum = parseFloat(amount);
+    const netInfo = await NetInfo.fetch();
+
+    console.log(netInfo);
+
+    if (!netInfo.isConnected) {
+      await addToQueue(recipient, amountNum);
+      console.log();
+
+      Alert.alert('Offline', 'Transaction saved. It will be sent when online.');
+      navigation.goBack();
+      return;
+    }
+
     try {
-      const hasToken = await Keychain.getGenericPassword({
-        service: 'service_key',
-        accessControl: Keychain.ACCESS_CONTROL.BIOMETRY_ANY_OR_DEVICE_PASSCODE,
-      });
-
-      if (!hasToken) {
-        Alert.alert('Please login first');
-        logout();
-        return;
-      }
-
-      if (!recipient || !amount) {
-        Alert.alert('Please enter recipient and amount');
-        return;
-      }
-
       setSubmitting(true);
 
       const token = hasToken.password;
@@ -163,14 +180,14 @@ export const SendMoney = () => {
             {loading
               ? 'Calculating...'
               : converted !== null && (
-                  <Text style={{ marginTop: 10, color: colors.text.primary }}>
-                    Recipient will receive:{' '}
-                    <Text style={{ fontWeight: 'bold', marginHorizontal: 5 }}>
+                  <>
+                    <Text style={s.smallerText}>Recipient will receive: </Text>
+                    <Text style={[s.smallText, s.mx20]}>
                       {converted.toFixed(2)}
                     </Text>
-                    local currency
-                  </Text>
-                )}{' '}
+                    <Text style={s.smallerText}>   local currency</Text>{' '}
+                  </>
+                )}
           </Text>
         )}
 

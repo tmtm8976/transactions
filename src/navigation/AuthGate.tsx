@@ -6,7 +6,6 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 import { Login } from '../screens/auth/Login';
 import { Register } from '../screens/auth/Register';
-import BiometricSetup from '../screens/auth/BiometricSetup';
 import { Dashboard } from '../screens/dashboard/Dashboard';
 import { SendMoney } from '../screens/transaction/SendMoney';
 import { TransactionHistory } from '../screens/transaction/TransactionHistory';
@@ -19,7 +18,6 @@ const AuthScreens = () => (
   <AuthStack.Navigator screenOptions={{ headerShown: false }}>
     <AuthStack.Screen name="Login" component={Login} />
     <AuthStack.Screen name="Register" component={Register} />
-    <AuthStack.Screen name="BiometricSetup" component={BiometricSetup} />
   </AuthStack.Navigator>
 );
 

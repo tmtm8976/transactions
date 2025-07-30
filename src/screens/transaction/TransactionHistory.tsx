@@ -6,6 +6,7 @@ import { globalStyles as s } from '../../styles/globalStyles';
 import { useAuth } from '../../context/AuthContext';
 import config from '../../../config';
 import { colors } from '../../styles/colors';
+import { getPendingTransactions } from '../../db/queue';
 
 type StatusKey = keyof typeof colors.status;
 
@@ -13,6 +14,21 @@ export const TransactionHistory = () => {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const { authUser, logout } = useAuth();
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchPending = async () => {
+      getPendingTransactions()
+        .then(pending => {
+          console.log('pending', pending);
+          setTransactions(prev => [...prev, ...pending]);
+        })
+        .catch(err => {
+          console.log('err', { err });
+        });
+    };
+
+    fetchPending();
+  }, []);
 
   const loadTransactions = async () => {
     try {
@@ -42,7 +58,7 @@ export const TransactionHistory = () => {
       if (!response.ok) {
         throw new Error(result.message || 'Login failed');
       }
-      setTransactions(result?.data);
+      setTransactions(prev => [...prev, ...result?.data]);
     } catch (error: any) {
       console.error('Login error:', error.message, { error });
       Alert.alert('Error', error.message);
@@ -53,6 +69,8 @@ export const TransactionHistory = () => {
   useEffect(() => {
     loadTransactions();
   }, []);
+
+  // console.log('pending', pending());
 
   return (
     <SafeAreaView style={s.safeArea}>
@@ -66,21 +84,31 @@ export const TransactionHistory = () => {
           renderItem={({ item }) => {
             const status = item.status.toLowerCase() as StatusKey;
             return (
-              <View style={[s.card, s.flexRow, s.between]}>
-                <Text style={s.lable}>{item.recipient}</Text>
-                <Text style={s.text}>{item.amount.toFixed(2)}</Text>
-                <Text
-                  style={[
-                    s.smallText,
-                    {
-                      color:
-                        colors.status?.[status] ??
-                        colors.text.primary,
-                    },
-                  ]}
-                >
-                  {item.status}
-                </Text>
+              <View style={[s.card]}>
+                <View style={[s.flexRow, s.between]}>
+                  <Text style={s.lable}>{item.recipient}</Text>
+                  <Text style={s.text}>{item.amount.toFixed(2)}</Text>
+                </View>
+                <View style={[s.flexRow, s.between]}>
+                  <View>
+                    <Text style={s.smallerText}>
+                      created at: {item.created_at}
+                    </Text>
+                    <Text style={s.smallerText}>
+                      completed at: {item.completed_at}
+                    </Text>
+                  </View>
+                  <Text
+                    style={[
+                      s.smallText,
+                      {
+                        color: colors.status?.[status] ?? colors.text.primary,
+                      },
+                    ]}
+                  >
+                    {item.status}
+                  </Text>
+                </View>
               </View>
             );
           }}

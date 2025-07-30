@@ -1,5 +1,5 @@
 const config ={
-    API_URL: 'https://c43f2af3c1d1.ngrok-free.app/api'
+    API_URL: 'https://edbb98ae6f0f.ngrok-free.app/api'
 }
 
 export default config

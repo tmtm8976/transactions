@@ -45,4 +45,6 @@ type Transaction = {
   recipient: string;
   amount: number;
   status: string;
+  created_at: string;
+  completed_at: string;
 };

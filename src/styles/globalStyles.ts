@@ -4,7 +4,7 @@ import { colors } from './colors';
 export const globalStyles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#0F0F0F',
+    backgroundColor: '#1A1A1A',
   },
   container: {
     flex: 1,
