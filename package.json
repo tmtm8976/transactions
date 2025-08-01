@@ -13,6 +13,8 @@
     "@react-native-clipboard/clipboard": "^1.16.3",
     "@react-native-community/masked-view": "^0.1.11",
     "@react-native-community/netinfo": "^11.4.1",
+    "@react-native-firebase/app": "^22.4.0",
+    "@react-native-firebase/messaging": "^22.4.0",
     "@react-native-vector-icons/evil-icons": "^12.2.0",
     "@react-native-vector-icons/fontawesome6": "^12.1.0",
     "@react-native-vector-icons/lucide": "^12.2.0",

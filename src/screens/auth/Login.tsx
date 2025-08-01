@@ -8,6 +8,7 @@ import * as Keychain from 'react-native-keychain';
 import { colors } from '../../styles/colors';
 import config from '../../../config';
 import { useAuth } from '../../context/AuthContext';
+import messaging from '@react-native-firebase/messaging';
 
 type AuthNavProp = NativeStackNavigationProp<
   AuthStackNavigationScreens,
@@ -50,40 +51,44 @@ export const Login = () => {
 
   const handleLogin = async () => {
     if (!valid()) return;
-
     try {
-      const response = await fetch(`${config.API_URL}/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(fromData),
-      });
+      messaging()
+        .getToken()
+        .then(async device_token => {
+          const response = await fetch(`${config.API_URL}/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ...fromData, device_token }),
+          });
 
-      const result = await response.json();
+          const result = await response.json();
 
-      if (!response.ok) {
-        throw new Error(result.message || 'Login failed');
-      }
+          if (!response.ok) {
+            throw new Error(result.message || 'Login failed');
+          }
 
-      console.log(result, 'result');
+          console.log(result, 'result');
 
-      // Save token with biometrics
-      await Keychain.setGenericPassword(fromData.username, result.token, {
-        service: 'service_key',
-        accessControl: Keychain.ACCESS_CONTROL.BIOMETRY_ANY_OR_DEVICE_PASSCODE,
-        authenticationPrompt: {
-          title: 'Biometric Authentication',
-        },
-      });
-      await Keychain.setGenericPassword(fromData.username, result.token, {
-        service: 'background_token',
-      });
+          // Save token with biometrics
+          await Keychain.setGenericPassword(fromData.username, result.token, {
+            service: 'service_key',
+            accessControl:
+              Keychain.ACCESS_CONTROL.BIOMETRY_ANY_OR_DEVICE_PASSCODE,
+            authenticationPrompt: {
+              title: 'Biometric Authentication',
+            },
+          });
+          await Keychain.setGenericPassword(fromData.username, result.token, {
+            service: 'background_token',
+          });
 
-      login({
-        id: result?.user.id ?? '',
-        name: result?.user.name ?? '',
-        username: result?.user.username ?? '',
-        token: result.token ?? '',
-      });
+          login({
+            id: result?.user.id ?? '',
+            name: result?.user.name ?? '',
+            username: result?.user.username ?? '',
+            token: result.token ?? '',
+          });
+        });
     } catch (error: any) {
       console.error('Login error:', error.message, { error });
       Alert.alert('Error', error.message);

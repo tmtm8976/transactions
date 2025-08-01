@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "477293452191",
+    "project_id": "remittancetask",
+    "storage_bucket": "remittancetask.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:477293452191:android:5c5a846dc5bfe8a2c6fbaa",
+        "android_client_info": {
+          "package_name": "com.remittancetask"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDUqv6ZV9DSHOVPtjr6wF3z4srZd-pD5XM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
