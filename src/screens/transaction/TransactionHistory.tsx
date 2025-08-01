@@ -111,7 +111,7 @@ export const TransactionHistory = () => {
                       },
                     ]}
                   >
-                    {item.status}
+                    {item.status === 'pending' ? 'created' : 'Completed'}
                   </Text>
                 </View>
               </View>
