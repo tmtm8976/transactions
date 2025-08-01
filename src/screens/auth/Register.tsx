@@ -183,68 +183,65 @@ export const Register = () => {
   };
 
   const handleRegister = async () => {
-    if (!selectedImage) {
-      Alert.alert('Validation Error', 'Please upload your ID photo.');
-      return;
+  if (!selectedImage) {
+    Alert.alert('Validation Error', 'Please upload your ID photo.');
+    return;
+  }
+
+  setLoading(true);
+
+  try {
+    const formDataToSend = new FormData();
+
+    formDataToSend.append('username', formData.username);
+    formDataToSend.append('password', formData.password);
+    formDataToSend.append('confirmPassword', formData.confirmPassword);
+
+    const fileName = selectedImage.split('/').pop();
+    const fileType = fileName?.split('.').pop();
+
+    formDataToSend.append('IDImage', {
+      uri: selectedImage,
+      name: fileName || `photo.${fileType || 'jpg'}`,
+      type: `image/${fileType || 'jpeg'}`,
+    });
+
+    const device_token = await messaging().getToken();
+    formDataToSend.append('device_token', device_token);
+
+    const response = await fetch(`${config.API_URL}/register`, {
+      method: 'POST',
+      body: formDataToSend,
+    });
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      throw new Error(result.message || 'Registration failed');
     }
-    setLoading(true);
 
-    try {
-      const formDataToSend = new FormData();
+    await Keychain.setGenericPassword(formData.username, result.token, {
+      service: 'service_key',
+      accessControl:
+        Keychain.ACCESS_CONTROL.BIOMETRY_ANY_OR_DEVICE_PASSCODE,
+    });
 
-      formDataToSend.append('username', formData.username);
-      formDataToSend.append('password', formData.password);
-      formDataToSend.append('confirmPassword', formData.confirmPassword);
+    await Keychain.setGenericPassword(formData.username, result.token, {
+      service: 'background_token',
+    });
 
-      if (selectedImage) {
-        const fileName = selectedImage.split('/').pop();
-        const fileType = fileName?.split('.').pop();
+    login({
+      username: formData.username,
+      token: result.token,
+    });
 
-        formDataToSend.append('IDImage', {
-          uri: selectedImage,
-          name: fileName || `photo.${fileType || 'jpg'}`,
-          type: `image/${fileType || 'jpeg'}`,
-        });
-      }
-
-      messaging()
-        .getToken()
-        .then(async device_token => {
-          formDataToSend.append('device_token', device_token);
-          const response = await fetch(`${config.API_URL}/register`, {
-            method: 'POST',
-            body: formDataToSend,
-          });
-
-          const result = await response.json();
-
-          if (!response.ok) {
-            throw new Error(result.message || 'Registration failed');
-          }
-
-          // Optionally auto-login:
-          await Keychain.setGenericPassword(formData.username, result.token, {
-            service: 'service_key',
-            accessControl:
-              Keychain.ACCESS_CONTROL.BIOMETRY_ANY_OR_DEVICE_PASSCODE,
-          });
-
-          await Keychain.setGenericPassword(formData.username, result.token, {
-            service: 'background_token',
-          });
-
-          login({
-            username: formData.username,
-            token: result.token,
-          });
-        });
-    } catch (error: any) {
-      console.error('Register error:', { error });
-      Alert.alert('Error', error.message);
-    } finally {
-      setLoading(false);
-    }
-  };
+  } catch (error: any) {
+    console.error('Register error:', { error });
+    Alert.alert('Error', error.message);
+  } finally {
+    setLoading(false); // ✅ now runs after everything finishes
+  }
+};
 
   return (
     <SafeAreaView style={s.safeArea}>

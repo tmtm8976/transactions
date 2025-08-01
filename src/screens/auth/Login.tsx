@@ -58,53 +58,50 @@ export const Login = () => {
   };
 
   const handleLogin = async () => {
-    setLoading(true);
-    if (!valid()) return;
-    try {
-      messaging()
-        .getToken()
-        .then(async device_token => {
-          const response = await fetch(`${config.API_URL}/login`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ ...fromData, device_token }),
-          });
+  if (!valid()) return;
+  setLoading(true);
+  try {
+    const device_token = await messaging().getToken();
 
-          const result = await response.json();
+    const response = await fetch(`${config.API_URL}/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...fromData, device_token }),
+    });
 
-          if (!response.ok) {
-            throw new Error(result.message || 'Login failed');
-          }
+    const result = await response.json();
 
-          console.log(result, 'result');
-
-          // Save token with biometrics
-          await Keychain.setGenericPassword(fromData.username, result.token, {
-            service: 'service_key',
-            accessControl:
-              Keychain.ACCESS_CONTROL.BIOMETRY_ANY_OR_DEVICE_PASSCODE,
-            authenticationPrompt: {
-              title: 'Biometric Authentication',
-            },
-          });
-          await Keychain.setGenericPassword(fromData.username, result.token, {
-            service: 'background_token',
-          });
-
-          login({
-            id: result?.user.id ?? '',
-            name: result?.user.name ?? '',
-            username: result?.user.username ?? '',
-            token: result.token ?? '',
-          });
-        });
-    } catch (error: any) {
-      console.error('Login error:', error.message, { error });
-      Alert.alert('Error', error.message);
-    } finally {
-      setLoading(false);
+    if (!response.ok) {
+      throw new Error(result.message || 'Login failed');
     }
-  };
+
+    await Keychain.setGenericPassword(fromData.username, result.token, {
+      service: 'service_key',
+      accessControl:
+        Keychain.ACCESS_CONTROL.BIOMETRY_ANY_OR_DEVICE_PASSCODE,
+      authenticationPrompt: {
+        title: 'Biometric Authentication',
+      },
+    });
+
+    await Keychain.setGenericPassword(fromData.username, result.token, {
+      service: 'background_token',
+    });
+
+    login({
+      id: result?.user.id ?? '',
+      name: result?.user.name ?? '',
+      username: result?.user.username ?? '',
+      token: result.token ?? '',
+    });
+  } catch (error: any) {
+    console.error('Login error:', error.message, { error });
+    Alert.alert('Error', error.message);
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   return (
     <SafeAreaView style={s.safeArea}>
