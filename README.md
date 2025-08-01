@@ -23,17 +23,6 @@ A React Native app for secure money transfers with offline support, biometric au
 ### Notifications
 - Push alerts via Firebase Cloud Messaging
 
-## Status
-
-- [x] Registration & KYC
-- [x] Send Money flow (mock)
-- [x] Biometric authentication
-- [x] Jailbreak/root detection
-- [x] Offline queueing (SQLite)
-- [x] Foreground and background sync
-- [x] Push notifications
-- [x] Transaction history with status
-
 ## System Design
 
 ### 1. Offline Sync
@@ -82,13 +71,6 @@ npm run android
 ## server
  - the app uses [this](https://github.com/tmtm8976/tansactions_be) repo, you can clone and run to connect it to your app
  However, the apk file provided is using ngrok link forwarding to the running backend on my pc as it includes required credentials for database and firebase
-
-## Tech Stack
-- React Native
-- Express.js (Backend)
-- SQLite
-- Firebase Cloud Messaging
-- Ngrok (for development tunneling)
 
 
 ## Known Limitations
