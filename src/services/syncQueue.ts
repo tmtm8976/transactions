@@ -23,8 +23,10 @@ export const processQueue = async () => {
           Authorization: `Bearer ${creds.password}`,
         },
         body: JSON.stringify({
+          id: tx.id,
           recipient: tx.recipient,
           amount: tx.amount,
+          createdAt: tx.completed_at,
         }),
       });
 

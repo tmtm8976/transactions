@@ -1,4 +1,5 @@
 import SQLite from 'react-native-sqlite-storage';
+import { v4 as uuidv4 } from 'uuid';
 
 const getDB = async () =>
   await SQLite.openDatabase({ name: 'queue.db', location: 'default' });
@@ -8,7 +9,7 @@ export const initQueueTable = async () => {
   db.transaction(tx => {
     tx.executeSql(
       `CREATE TABLE IF NOT EXISTS transactions (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        id TEXT PRIMARY KEY,
         recipient TEXT NOT NULL,
         amount REAL NOT NULL,
         status TEXT NOT NULL DEFAULT 'pending',
@@ -18,13 +19,14 @@ export const initQueueTable = async () => {
     );
   });
 };
+
 export const resetQueueTable = async () => {
   const db = await getDB();
   db.transaction(tx => {
     tx.executeSql(`DROP TABLE IF EXISTS transactions;`);
     tx.executeSql(`
       CREATE TABLE IF NOT EXISTS transactions (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        id TEXT PRIMARY KEY,
         recipient TEXT NOT NULL,
         amount REAL NOT NULL,
         status TEXT NOT NULL DEFAULT 'pending',
@@ -37,12 +39,14 @@ export const resetQueueTable = async () => {
 
 export const addToQueue = async (recipient: string, amount: number) => {
   const db = await getDB();
+  const id = uuidv4();
+
   return new Promise<void>((resolve, reject) => {
     db.transaction(tx => {
       tx.executeSql(
-        `INSERT INTO transactions (recipient, amount, status, created_at) 
-         VALUES (?, ?, 'pending', datetime('now'));`,
-        [recipient, amount],
+        `INSERT INTO transactions (id, recipient, amount, status, created_at) 
+         VALUES (?, ?, ?, 'pending', datetime('now'));`,
+        [id, recipient, amount],
         () => resolve(),
         err => {
           reject(err);
@@ -71,19 +75,21 @@ export const getPendingTransactions = async (): Promise<Transaction[]> => {
         },
         err => {
           reject(err);
-          return false;
         },
       );
     });
   });
 };
 
-export const markAsSynced = async (id: number) => {
+export const markAsSynced = async (id: string) => {
   const db = await getDB();
   db.transaction(tx => {
-    tx.executeSql('UPDATE transactions SET status = "synced" WHERE id = ?;', [
-      id,
-    ]);
+    tx.executeSql(
+      `UPDATE transactions 
+       SET status = 'synced', completed_at = datetime('now') 
+       WHERE id = ?;`,
+      [id],
+    );
   });
 };
 

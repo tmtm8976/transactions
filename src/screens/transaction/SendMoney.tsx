@@ -20,8 +20,8 @@ import { useAuth } from '../../context/AuthContext';
 import * as Keychain from 'react-native-keychain';
 import { useNavigation } from '@react-navigation/native';
 import NetInfo from '@react-native-community/netinfo';
-import { addToQueue } from '../../db/queue';
-// import { addToQueue } from '../../db/queue';
+import { addToQueue, resetQueueTable } from '../../db/queue';
+import { v4 as uuidv4 } from 'uuid';
 
 export const SendMoney = () => {
   const [recipient, setRecipient] = useState('');
@@ -49,19 +49,20 @@ export const SendMoney = () => {
     });
   };
 
-  const convert = async () => {
-    if (!amount || isNaN(Number(amount))) {
+  const convert = async (amountInput: string) => {
+    
+    if (!amountInput || isNaN(Number(amountInput))) {
       // Alert.alert('Enter a valid amount');
       return;
     }
 
     const { rate } = await fetchMockRate();
-    setConverted(Number(amount) * rate);
+    setConverted(Number(amountInput) * rate);
   };
 
-  const handleAmountChange = (text: string) => {
+  const handleAmountChange  = (text: string) => {
     setAmount(text);
-    text && convert();
+    text && convert(text);
   };
 
   const handleSend = async () => {
@@ -84,21 +85,27 @@ export const SendMoney = () => {
     const amountNum = parseFloat(amount);
     const netInfo = await NetInfo.fetch();
 
-    console.log(netInfo);
-
     if (!netInfo.isConnected) {
-      await addToQueue(recipient, amountNum);
-      console.log();
+      try {
+        await addToQueue(recipient, amountNum);
 
-      Alert.alert('Offline', 'Transaction saved. It will be sent when online.');
-      navigation.goBack();
-      return;
+        Alert.alert(
+          'Offline',
+          'Transaction saved. It will be sent when online.',
+        );
+        navigation.goBack();
+        return;
+      } catch (error) {
+        Alert.alert('Error', 'Failed to save transaction');
+        return;
+      }
     }
 
     try {
       setSubmitting(true);
 
       const token = hasToken.password;
+      const id = uuidv4();
 
       const response = await fetch(`${config.API_URL}/transaction`, {
         method: 'POST',
@@ -107,6 +114,7 @@ export const SendMoney = () => {
           Authorization: `Bearer ${token ?? ''}`,
         },
         body: JSON.stringify({
+          id,
           amount: parseFloat(amount),
           recipient,
         }),
@@ -116,7 +124,7 @@ export const SendMoney = () => {
       setSubmitting(false);
 
       if (!response.ok) {
-        throw new Error(result.message || 'Login failed');
+        throw new Error(result.msg || 'Login failed');
       }
 
       Platform.OS === 'android' &&
@@ -185,7 +193,7 @@ export const SendMoney = () => {
                     <Text style={[s.smallText, s.mx20]}>
                       {converted.toFixed(2)}
                     </Text>
-                    <Text style={s.smallerText}>   local currency</Text>{' '}
+                    <Text style={s.smallerText}> local currency</Text>{' '}
                   </>
                 )}
           </Text>

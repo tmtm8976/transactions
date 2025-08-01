@@ -40,11 +40,13 @@ type User = {
   token: string;
 };
 
+
+
 type Transaction = {
-  id: number;
+  id: string;
   recipient: string;
   amount: number;
   status: string;
   created_at: string;
-  completed_at: string;
-};
+  completed_at?: string | null;
+}
