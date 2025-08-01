@@ -86,3 +86,10 @@ export const markAsSynced = async (id: number) => {
     ]);
   });
 };
+
+export const clearPendingTransactions = async () => {
+  const db = await getDB();
+  db.transaction(tx => {
+    tx.executeSql('DELETE FROM transactions WHERE status = "pending";');
+  });
+};

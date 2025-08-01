@@ -7,6 +7,7 @@ import { useAuth } from '../../context/AuthContext';
 import config from '../../../config';
 import { colors } from '../../styles/colors';
 import { getPendingTransactions } from '../../db/queue';
+import { useNetInfo } from '@react-native-community/netinfo';
 
 type StatusKey = keyof typeof colors.status;
 
@@ -14,6 +15,7 @@ export const TransactionHistory = () => {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const { authUser, logout } = useAuth();
   const [loading, setLoading] = useState(false);
+  const { isConnected } = useNetInfo();
 
   useEffect(() => {
     const fetchPending = async () => {
@@ -58,7 +60,7 @@ export const TransactionHistory = () => {
       if (!response.ok) {
         throw new Error(result.message || 'Login failed');
       }
-      setTransactions(prev => [...prev, ...result?.data]);
+      setTransactions(result?.data);
     } catch (error: any) {
       console.error('Login error:', error.message, { error });
       Alert.alert('Error', error.message);
@@ -66,9 +68,15 @@ export const TransactionHistory = () => {
     }
   };
 
+  const refresh = () => {
+    if (isConnected) {
+      loadTransactions();
+    }
+  };
+
   useEffect(() => {
-    loadTransactions();
-  }, []);
+    refresh();
+  }, [isConnected]);
 
   // console.log('pending', pending());
 
@@ -80,7 +88,7 @@ export const TransactionHistory = () => {
           data={transactions}
           keyExtractor={(_, i) => i.toString()}
           refreshing={loading}
-          onRefresh={loadTransactions}
+          onRefresh={refresh}
           renderItem={({ item }) => {
             const status = item.status.toLowerCase() as StatusKey;
             return (

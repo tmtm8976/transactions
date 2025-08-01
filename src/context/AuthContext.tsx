@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState } from 'react';
+import { clearPendingTransactions } from '../db/queue';
 
 type AuthContextType = {
   authenticated: boolean;
@@ -18,13 +19,16 @@ export const useAuth = () => useContext(AuthContext);
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [authenticated, setAuthenticated] = useState(false);
-  const  [authUser, setAuthUser] = useState<User | null>(null);
+  const [authUser, setAuthUser] = useState<User | null>(null);
 
   const login = (user: User) => {
     setAuthUser(user);
     setAuthenticated(true);
-  }
-  const logout = () => setAuthenticated(false);
+  };
+  const logout = async () => {
+    await clearPendingTransactions();
+    setAuthenticated(false);
+  };
 
   return (
     <AuthContext.Provider value={{ authenticated, login, logout, authUser }}>

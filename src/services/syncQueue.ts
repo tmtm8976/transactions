@@ -3,9 +3,15 @@ import config from '../../config';
 import * as Keychain from 'react-native-keychain';
 
 export const processQueue = async () => {
+  console.log('Syncing queue...');
+
   const transactions = await getPendingTransactions();
 
-  const creds = await Keychain.getGenericPassword({ service: 'service_key' });
+
+  const creds = await Keychain.getGenericPassword({
+    service: 'background_token',
+  });
+
   if (!creds) return;
 
   for (const tx of transactions) {

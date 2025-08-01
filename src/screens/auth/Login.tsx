@@ -29,25 +29,6 @@ export const Login = () => {
     navigation.navigate('Register');
   };
 
-  const setCredentials = async (username: string, password: string) =>
-    await Keychain.setGenericPassword(username, password, {
-      service: 'service_key',
-      securityLevel: Keychain.SECURITY_LEVEL.SECURE_SOFTWARE,
-      accessControl: Keychain.ACCESS_CONTROL.BIOMETRY_ANY_OR_DEVICE_PASSCODE,
-    });
-
-  // setCredentials('username', 'password').then(res =>
-  //   console.log('Credentials set, ', res),
-  // );
-
-  const getCredentials = async () => {
-    const credentials = await Keychain.getGenericPassword({
-      service: 'service_key',
-      accessControl: Keychain.ACCESS_CONTROL.BIOMETRY_ANY_OR_DEVICE_PASSCODE,
-    });
-    return credentials;
-  };
-
   const handleInputChange = (key: string, value: string) => {
     setFormData(prevFormData => ({
       ...prevFormData,
@@ -92,6 +73,9 @@ export const Login = () => {
         authenticationPrompt: {
           title: 'Biometric Authentication',
         },
+      });
+      await Keychain.setGenericPassword(fromData.username, result.token, {
+        service: 'background_token',
       });
 
       login({

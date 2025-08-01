@@ -15,7 +15,7 @@ export const setupBackgroundSync = async () => {
       if (netInfo.isConnected) {
         await processQueue();
       }
-      BackgroundFetch.finish();
+     BackgroundFetch.finish("new-data");
     },
     error => {
       console.error('[BackgroundFetch] failed', error);

@@ -6,6 +6,7 @@ import { setupBackgroundSync } from './src/services/background';
 import { initQueueTable, resetQueueTable } from './src/db/queue';
 import JailMonkey from 'jail-monkey';
 import { BackHandler } from 'react-native';
+import { useSyncOnAppStart } from './src/hooks/useSyncOnAppStart';
 
 export default function App() {
   if (JailMonkey.isJailBroken()) {
@@ -13,6 +14,8 @@ export default function App() {
   }
   setupBackgroundSync();
   initQueueTable();
+  useSyncOnAppStart();
+
 
   return <AuthGate />;
 }
