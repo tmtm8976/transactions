@@ -81,7 +81,7 @@ npm run android
 
 ## server
  - the app uses [this](https://github.com/tmtm8976/tansactions_be) repo, you can clone and run to connect it to your app
- However, the apk file provided is using ngrok link forwarding to the server in my pc as it includes required credentials for database and firebase
+ However, the apk file provided is using ngrok link forwarding to the running backend on my pc as it includes required credentials for database and firebase
 
 ## Tech Stack
 - React Native
