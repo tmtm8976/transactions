@@ -26,6 +26,7 @@ import FontAwesome6 from '@react-native-vector-icons/fontawesome6';
 import config from '../../../config';
 import * as Keychain from 'react-native-keychain';
 import { useAuth } from '../../context/AuthContext';
+import messaging from '@react-native-firebase/messaging';
 
 export const Register = () => {
   const navigation = useNavigation<NativeStackNavigationProp<any>>();
@@ -206,35 +207,37 @@ export const Register = () => {
         });
       }
 
-      const response = await fetch(`${config.API_URL}/register`, {
-        method: 'POST',
-        headers: {
-          // DO NOT manually set Content-Type for FormData
-          // The browser or fetch will set it with the correct boundaries
-        },
-        body: formDataToSend,
-      });
+      messaging()
+        .getToken()
+        .then(async device_token => {
+          formDataToSend.append('device_token', device_token);
+          const response = await fetch(`${config.API_URL}/register`, {
+            method: 'POST',
+            body: formDataToSend,
+          });
 
-      const result = await response.json();
+          const result = await response.json();
 
-      if (!response.ok) {
-        throw new Error(result.message || 'Registration failed');
-      }
+          if (!response.ok) {
+            throw new Error(result.message || 'Registration failed');
+          }
 
-      // Optionally auto-login:
-      await Keychain.setGenericPassword(formData.username, result.token, {
-        service: 'service_key',
-        accessControl: Keychain.ACCESS_CONTROL.BIOMETRY_ANY_OR_DEVICE_PASSCODE,
-      });
+          // Optionally auto-login:
+          await Keychain.setGenericPassword(formData.username, result.token, {
+            service: 'service_key',
+            accessControl:
+              Keychain.ACCESS_CONTROL.BIOMETRY_ANY_OR_DEVICE_PASSCODE,
+          });
 
-      await Keychain.setGenericPassword(formData.username, result.token, {
-        service: 'background_token',
-      });
+          await Keychain.setGenericPassword(formData.username, result.token, {
+            service: 'background_token',
+          });
 
-      login({
-        username: formData.username,
-        token: result.token,
-      });
+          login({
+            username: formData.username,
+            token: result.token,
+          });
+        });
     } catch (error: any) {
       console.error('Register error:', { error });
       Alert.alert('Error', error.message);
