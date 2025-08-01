@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { FlatList, Text, View, StyleSheet, Alert } from 'react-native';
-import { getDB } from '../../db/database';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { globalStyles as s } from '../../styles/globalStyles';
 import { useAuth } from '../../context/AuthContext';
@@ -8,6 +7,7 @@ import config from '../../../config';
 import { colors } from '../../styles/colors';
 import { getPendingTransactions } from '../../db/queue';
 import { useNetInfo } from '@react-native-community/netinfo';
+import { cacheTransactions, clearCachedTransactions, getCachedTransactions } from '../../db/cache';
 
 type StatusKey = keyof typeof colors.status;
 
@@ -17,20 +17,6 @@ export const TransactionHistory = () => {
   const [loading, setLoading] = useState(false);
   const { isConnected } = useNetInfo();
 
-  useEffect(() => {
-    const fetchPending = async () => {
-      getPendingTransactions()
-        .then(pending => {
-          console.log('pending', pending);
-          setTransactions(prev => [...prev, ...pending]);
-        })
-        .catch(err => {
-          console.log('err', { err });
-        });
-    };
-
-    fetchPending();
-  }, []);
 
   const loadTransactions = async () => {
     try {
@@ -61,6 +47,8 @@ export const TransactionHistory = () => {
         throw new Error(result.message || 'Login failed');
       }
       setTransactions(result?.data);
+      await clearCachedTransactions();
+      await cacheTransactions(result?.data);
     } catch (error: any) {
       console.error('Login error:', error.message, { error });
       Alert.alert('Error', error.message);
@@ -68,9 +56,18 @@ export const TransactionHistory = () => {
     }
   };
 
-  const refresh = () => {
+  const refresh = async () => {
     if (isConnected) {
       loadTransactions();
+      return;
+    }
+    try {
+      const pending = await getPendingTransactions();
+      const cached = await getCachedTransactions();
+
+      setTransactions([...pending, ...cached]);
+    } catch (error) {
+      console.log(error);
     }
   };
 

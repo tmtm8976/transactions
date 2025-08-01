@@ -9,6 +9,7 @@ import { Alert, BackHandler } from 'react-native';
 import { useSyncOnAppStart } from './src/hooks/useSyncOnAppStart';
 import { PermissionsAndroid } from 'react-native';
 import messaging from '@react-native-firebase/messaging';
+import { initCachedTransactionsTable } from './src/db/cache';
 
 export default function App() {
   if (JailMonkey.isJailBroken()) {
@@ -16,6 +17,7 @@ export default function App() {
   }
   setupBackgroundSync();
   initQueueTable();
+  initCachedTransactionsTable();
   useSyncOnAppStart();
 
   PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS);
