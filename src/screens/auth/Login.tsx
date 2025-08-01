@@ -1,5 +1,12 @@
 import React, { useState } from 'react';
-import { Alert, Pressable, Text, TextInput, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Alert,
+  Pressable,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
 import { globalStyles as s } from '../../styles/globalStyles';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -20,6 +27,7 @@ export const Login = () => {
     username: '',
     password: '',
   });
+  const [loading, setLoading] = useState(false);
   const [validator, setValidator] = useState<{
     username?: string;
     password?: string;
@@ -50,6 +58,7 @@ export const Login = () => {
   };
 
   const handleLogin = async () => {
+    setLoading(true);
     if (!valid()) return;
     try {
       messaging()
@@ -92,6 +101,8 @@ export const Login = () => {
     } catch (error: any) {
       console.error('Login error:', error.message, { error });
       Alert.alert('Error', error.message);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -143,8 +154,12 @@ export const Login = () => {
             <Text style={[s.smallText, s.error]}>{validator.password}</Text>
           )}
         </View>
-        <Pressable onPress={handleLogin} style={s.button}>
-          <Text style={s.buttonText}>Login</Text>
+        <Pressable disabled={loading} onPress={handleLogin} style={s.button}>
+          {loading ? (
+            <ActivityIndicator color={colors.text.primary} />
+          ) : (
+            <Text style={s.buttonText}>Login</Text>
+          )}
         </Pressable>
         <View style={s.line}></View>
         <View style={[s.flexRow, s.gap10]}>

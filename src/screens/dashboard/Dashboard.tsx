@@ -17,7 +17,7 @@ type NavProp = NativeStackNavigationProp<
 
 export const Dashboard = () => {
   const navigation = useNavigation<NavProp>();
-  const { logout } = useAuth();
+  const { logout, authUser } = useAuth();
 
   const handleBtnNavigate = (screen: HomeStackScreens) => {
     navigation.navigate(screen);
@@ -55,8 +55,8 @@ export const Dashboard = () => {
         </Pressable>
         <View style={[s.flexRow, s.between, s.my20]}>
           <View>
-            <Text style={s.header}>John Doe</Text>
-            <Text style={s.smallText}>JohnDoe@gmail.com</Text>
+            <Text style={s.header}>{authUser?.name || authUser?.username}</Text>
+            <Text style={s.smallText}>@{authUser?.username}</Text>
           </View>
 
           <View style={s.flexRow}>

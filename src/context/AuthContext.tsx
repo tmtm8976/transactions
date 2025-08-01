@@ -1,5 +1,7 @@
 import React, { createContext, useContext, useState } from 'react';
 import { clearPendingTransactions } from '../db/queue';
+import { clearCachedTransactions } from '../db/cache';
+import * as Keychain from 'react-native-keychain';
 
 type AuthContextType = {
   authenticated: boolean;
@@ -27,6 +29,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
   const logout = async () => {
     await clearPendingTransactions();
+    await clearCachedTransactions();
+    await Keychain.resetGenericPassword({
+      service: 'service_key',
+    });
+    await Keychain.resetGenericPassword({
+      service: 'background_token',
+    });
     setAuthenticated(false);
   };
 

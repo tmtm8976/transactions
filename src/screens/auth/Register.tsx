@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import {
   ActionSheetIOS,
+  ActivityIndicator,
   Alert,
   Image,
   Platform,
@@ -29,6 +30,7 @@ import { useAuth } from '../../context/AuthContext';
 export const Register = () => {
   const navigation = useNavigation<NativeStackNavigationProp<any>>();
   const [step, setStep] = useState(1);
+  const [loading, setLoading] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     username: '',
@@ -41,9 +43,34 @@ export const Register = () => {
   };
 
   const handleNext = () => {
+    if (step === 1 && !formData.username.trim()) {
+      Alert.alert('Validation Error', 'Please enter a username.');
+      return;
+    }
+
+    if (step === 2) {
+      if (!formData.password || !formData.confirmPassword) {
+        Alert.alert(
+          'Validation Error',
+          'Please enter and confirm your password.',
+        );
+        return;
+      }
+      if (formData.password !== formData.confirmPassword) {
+        Alert.alert('Validation Error', 'Passwords do not match.');
+        return;
+      }
+      if (formData.password.length < 6) {
+        Alert.alert(
+          'Validation Error',
+          'Password must be at least 6 characters.',
+        );
+        return;
+      }
+    }
+
     setStep(step + 1);
   };
-
   const handleBack = () => {
     setStep(step - 1);
   };
@@ -155,57 +182,66 @@ export const Register = () => {
   };
 
   const handleRegister = async () => {
+    if (!selectedImage) {
+      Alert.alert('Validation Error', 'Please upload your ID photo.');
+      return;
+    }
+    setLoading(true);
 
-    console.log('formData', formData);
-    
-  try {
-    const formDataToSend = new FormData();
+    try {
+      const formDataToSend = new FormData();
 
-    formDataToSend.append('username', formData.username);
-    formDataToSend.append('password', formData.password);
-    formDataToSend.append('confirmPassword', formData.confirmPassword);
+      formDataToSend.append('username', formData.username);
+      formDataToSend.append('password', formData.password);
+      formDataToSend.append('confirmPassword', formData.confirmPassword);
 
-    if (selectedImage) {
-      const fileName = selectedImage.split('/').pop();
-      const fileType = fileName?.split('.').pop();
+      if (selectedImage) {
+        const fileName = selectedImage.split('/').pop();
+        const fileType = fileName?.split('.').pop();
 
-      formDataToSend.append('IDImage', {
-        uri: selectedImage,
-        name: fileName || `photo.${fileType || 'jpg'}`,
-        type: `image/${fileType || 'jpeg'}`,
+        formDataToSend.append('IDImage', {
+          uri: selectedImage,
+          name: fileName || `photo.${fileType || 'jpg'}`,
+          type: `image/${fileType || 'jpeg'}`,
+        });
+      }
+
+      const response = await fetch(`${config.API_URL}/register`, {
+        method: 'POST',
+        headers: {
+          // DO NOT manually set Content-Type for FormData
+          // The browser or fetch will set it with the correct boundaries
+        },
+        body: formDataToSend,
       });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.message || 'Registration failed');
+      }
+
+      // Optionally auto-login:
+      await Keychain.setGenericPassword(formData.username, result.token, {
+        service: 'service_key',
+        accessControl: Keychain.ACCESS_CONTROL.BIOMETRY_ANY_OR_DEVICE_PASSCODE,
+      });
+
+      await Keychain.setGenericPassword(formData.username, result.token, {
+        service: 'background_token',
+      });
+
+      login({
+        username: formData.username,
+        token: result.token,
+      });
+    } catch (error: any) {
+      console.error('Register error:', { error });
+      Alert.alert('Error', error.message);
+    } finally {
+      setLoading(false);
     }
-
-    const response = await fetch(`${config.API_URL}/register`, {
-      method: 'POST',
-      headers: {
-        // DO NOT manually set Content-Type for FormData
-        // The browser or fetch will set it with the correct boundaries
-      },
-      body: formDataToSend,
-    });
-
-    const result = await response.json();
-
-    if (!response.ok) {
-      throw new Error(result.message || 'Registration failed');
-    }
-
-    console.log('Server response:', result);
-
-    // Optionally auto-login:
-    await Keychain.setGenericPassword(formData.username, result.token, {
-      service: 'service_key',
-      accessControl: Keychain.ACCESS_CONTROL.BIOMETRY_ANY_OR_DEVICE_PASSCODE,
-    });
-
-    login()
-  } catch (error: any) {
-    console.error('Register error:', { error });
-    Alert.alert('Error', error.message);
-  }
-};
-
+  };
 
   return (
     <SafeAreaView style={s.safeArea}>
@@ -324,8 +360,16 @@ export const Register = () => {
           </Pressable>
         )}
         {step === 3 && (
-          <Pressable onPress={handleRegister} style={s.button}>
-            <Text style={s.buttonText}>Sign Up</Text>
+          <Pressable
+            disabled={loading}
+            onPress={handleRegister}
+            style={s.button}
+          >
+            {loading ? (
+              <ActivityIndicator color={colors.text.primary} />
+            ) : (
+              <Text style={s.buttonText}>Sign Up</Text>
+            )}
           </Pressable>
         )}
         <View style={s.line}></View>
