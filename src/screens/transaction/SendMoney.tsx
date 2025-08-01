@@ -84,10 +84,11 @@ export const SendMoney = () => {
 
     const amountNum = parseFloat(amount);
     const netInfo = await NetInfo.fetch();
+      const id = uuidv4();
 
     if (!netInfo.isConnected) {
       try {
-        await addToQueue(recipient, amountNum);
+        await addToQueue(recipient, amountNum, id);
 
         Alert.alert(
           'Offline',
@@ -105,7 +106,6 @@ export const SendMoney = () => {
       setSubmitting(true);
 
       const token = hasToken.password;
-      const id = uuidv4();
 
       const response = await fetch(`${config.API_URL}/transaction`, {
         method: 'POST',

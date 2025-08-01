@@ -37,9 +37,8 @@ export const resetQueueTable = async () => {
   });
 };
 
-export const addToQueue = async (recipient: string, amount: number) => {
+export const addToQueue = async (recipient: string, amount: number, id: string) => {
   const db = await getDB();
-  const id = uuidv4();
 
   return new Promise<void>((resolve, reject) => {
     db.transaction(tx => {
